@@ -1,4 +1,3 @@
-//This is JPro sessionID
 
 var connectionId;
 document.addEventListener('DOMContentLoaded', function() {
@@ -104,13 +103,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     activePlayers = queueData.filter(user => user.status === "active");
     inactivePlayers = queueData.filter(user => user.status === "inactive");
-    console.log("These are active players:",activePlayers)
-    console.log("These are inactive players:",inactivePlayers)
 
     changeActivePlayersUI(activePlayers)
-    
+
     //sets active players div manipulation
-    setActiveCharacters(activePlayers);
+    setActiveCharacters(queueData);
 
     // Clear the existing list
     queueList.innerHTML = '';
@@ -161,20 +158,19 @@ function changeActivePlayersUI(data) {
 function setActiveCharacters(data) {
     activePlayers.forEach(player => {
     playingStatus = false;
-    if (connectionId === player.connectionId) {
+    if (connectionId === player.connectionId && player.status == "inactive") {
+        console.log("Info for inactive users:")
+        console.log("ConnectionID =",connectionId)
+        console.log("username =",username)
+        enableGameInteraction(false);
+    }
+    if (connectionId === player.connectionId && player.status == "active") {
         console.log("Info for active users:")
         console.log("ConnectionID =",connectionId)
         console.log("username =",username)
+        enableGameInteraction(true);
+    }
 
-       playingStatus = true;
-    }
-    if (!playingStatus){
-       console.log("Info for active users:")
-       console.log("ConnectionID =",connectionId)
-       console.log("username =",username)
-    }
-    
-    enableGameInteraction(playingStatus);
     });
 }
 
@@ -193,6 +189,8 @@ function setActiveCharacters(data) {
       }
   }
 });
+
+
 
 
 
