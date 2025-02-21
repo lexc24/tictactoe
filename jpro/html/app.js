@@ -170,7 +170,7 @@ function setActiveCharacters(queueData) {
    * Enables or disables user interaction on the game div.
    */
   function enableGameInteraction(isEnabled) {
-      const gameDiv = document.getElementById("game-container");
+      const gameDiv = document.getElementById("game-embed");
       if (!gameDiv) return;
       if (isEnabled) {
           gameDiv.style.pointerEvents = "auto";
