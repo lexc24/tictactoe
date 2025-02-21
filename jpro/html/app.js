@@ -157,7 +157,7 @@ function changeActivePlayersUI(data) {
 
 function setActiveCharacters(data) {
     activePlayers.forEach(player => {
-    console.lgo("we are in the actvile players loop this is cur player we are looking at:");
+    console.log("we are in the actvile players loop this is cur player we are looking at:");
         console.log("ConnectionID =",player.connectionId)
         console.log("username =",player.username)
         console.log("status =",player.status)
