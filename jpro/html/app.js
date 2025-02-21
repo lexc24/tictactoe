@@ -104,6 +104,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     activePlayers = queueData.filter(user => user.status === "active");
     inactivePlayers = queueData.filter(user => user.status === "inactive");
+    console.log("These are active players:",activePlayers)
+    console.log("These are inactive players:",inactivePlayers)
 
     changeActivePlayersUI(activePlayers)
     
