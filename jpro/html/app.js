@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ws.addEventListener("message", function(event) {
       try {
         const message = JSON.parse(event.data);
-        console.log('Received message:', message);
+        console.log('Received message to store connectionId:', message);
 
         // Assume your backend sends a response like:
         // { "connectionId": "abc123", "message": "Welcome" }
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Check the event type and call the appropriate function
         if (message.action === 'queueUpdate') {
-          console.log("We are in :)))))")
+          //console.log("We are in :)))))")
           updateQueueUI(message.data);
         }
         // You can add additional event handlers here if needed.
@@ -157,7 +157,7 @@ function changeActivePlayersUI(data) {
 
 function setActiveCharacters(data) {
     activePlayers.forEach(player => {
-    console.log("we are in the actvile players loop this is cur player we are looking at:");
+    console.log("we are in the players loop this is cur player we are looking at:");
         console.log("ConnectionID =",player.connectionId)
         console.log("username =",player.username)
         console.log("status =",player.status)
