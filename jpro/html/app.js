@@ -155,27 +155,15 @@ function changeActivePlayersUI(data) {
   }
 }
 
-function setActiveCharacters(data) {
-    activePlayers.forEach(player => {
-    console.log("we are in the players loop this is cur player we are looking at:");
-        console.log("ConnectionID =",player.connectionId)
-        console.log("username =",player.username)
-        console.log("status =",player.status)
-        
-    if (connectionId === player.connectionId && player.status == "inactive") {
-        console.log("Info for inactive users:")
-        console.log("ConnectionID =",connectionId)
-        console.log("username =",username)
-        enableGameInteraction(false);
-    }
-    if (connectionId === player.connectionId && player.status == "active") {
-        console.log("Info for active users:")
-        console.log("ConnectionID =",connectionId)
-        console.log("username =",username)
-        enableGameInteraction(true);
-    }
-
-    });
+function setActiveCharacters(queueData) {
+  // Look up the current user's info using the connectionId.
+  const currentUser = queueData.find(player => player.connectionId === connectionId);
+  if (currentUser) {
+    enableGameInteraction(currentUser.status === "active");
+  } else {
+    // Optionally disable interaction if the current user isn't found.
+    enableGameInteraction(false);
+  }
 }
 
   /**
