@@ -160,8 +160,18 @@ function setActiveCharacters(data) {
     activePlayers.forEach(player => {
     playingStatus = false;
     if (connectionId === player.connectionId) {
+        console.log("Info for active users:")
+        console.log("ConnectionID =",connectionId)
+        console.log("username =",username)
+
        playingStatus = true;
     }
+    if (!playingStatus){
+       console.log("Info for active users:")
+       console.log("ConnectionID =",connectionId)
+       console.log("username =",username)
+    }
+    
     enableGameInteraction(playingStatus);
     });
 }
