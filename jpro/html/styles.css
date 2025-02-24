@@ -165,7 +165,7 @@ header h1 {
 }
 
 
-/* Ensure the parent container is positioned relative */
+/* Ensure the parent container is positioned relative 
 .game-container {
   position: relative;
 }
@@ -195,5 +195,5 @@ header h1 {
 .game-container:hover::after {
   opacity: 1;
 }
-
+*/
 
