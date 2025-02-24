@@ -165,35 +165,4 @@ header h1 {
 }
 
 
-/* Ensure the parent container is positioned relative 
-.game-container {
-  position: relative;
-}
-
-/* Pseudo-element overlay for the queue message */
-.game-container::after {
-  content: "You are currently in the queue and cannot participate in the current game, your turn will be shortly :)";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(60, 80, 120, 0.8); /* Pastel dark blue overlay */
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  opacity: 0;
-  border-radius: 8px; /* Match container's border radius if needed */
-  padding: 20px;
-  transition: opacity 0.3s ease;
-  pointer-events: none; /* Ensures the overlay doesn't block underlying hover events */
-}
-
-/* Show the overlay on hover */
-.game-container:hover::after {
-  opacity: 1;
-}
-*/
 
