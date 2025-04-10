@@ -1,0 +1,260 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 1) Cardinal-red background with a subtle pattern */
+body {
+    font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #8C1515; /* Cardinal Red */
+    background-image: linear-gradient(135deg, rgba(0, 0, 0, 0.05) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0.05) 75%, transparent 75%, transparent);
+    background-size: 40px 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center content vertically */
+    min-height: 100vh;
+    padding: 30px;
+}
+
+/* 2) Main container with improved styling */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+    background-color: rgba(255, 255, 255, 0.98);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+/* Modern header styling */
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+header h1 {
+    color: #111;
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 10px;
+}
+
+header h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background-color: #8C1515;
+    border-radius: 2px;
+}
+
+/* Improved layout for the game wrapper */
+.game-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+}
+
+/* 3) Players and Queue as modern cards */
+.players, .queue {
+    width: 22%;
+    background-color: #002147; /* Navy Blue */
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+    padding: 20px;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.players:hover, .queue:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Player headings with improved typography */
+.players h2 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border-left: 3px solid #8C1515;
+    padding-left: 10px;
+}
+
+/* Game container styling */
+.game-container {
+    width: 56%;
+    text-align: center;
+    background-color: #f8f8f8;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Queue styling with improved typography */
+.queue h3 {
+    margin-bottom: 15px;
+    text-align: left;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border-left: 3px solid #8C1515;
+    padding-left: 10px;
+}
+
+/* Queue text and list items with improved styling */
+.queue ul {
+    list-style-type: none;
+    margin-left: 0;
+}
+
+.queue li {
+    text-align: left;
+    padding: 8px 0 8px 15px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.queue li:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.queue li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #8C1515;
+    font-weight: bold;
+}
+
+/* Enhanced modal styling */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+#username-modal .modal-content h2 {
+    color: #111;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Username Input with modern styling */
+#username-input {
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: rgba(77, 79, 82, 0.1) 0px 4px 12px;
+    border: 2px solid #e0e0e0;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+#username-input:hover {
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+    border-color: #bfd7ff;
+}
+
+#username-input:focus {
+    border: 2px solid #8C1515;
+    box-shadow: rgba(133, 130, 130, 0.1) 0px 4px 12px;
+    transform: scale(0.99);
+}
+
+#username-input::placeholder {
+    font-size: 14px;
+    font-weight: 400;
+    color: #aaa;
+}
+
+/* Button with cardinal red accent */
+#username-submit {
+    padding: 12px 20px;
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    background-color: #8C1515;
+    border-radius: 8px;
+    border: none;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 4px 8px rgba(140, 21, 21, 0.3);
+}
+
+#username-submit:hover {
+    background-color: #a01a1a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(140, 21, 21, 0.4);
+}
+
+#username-submit:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(140, 21, 21, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .game-wrapper {
+        flex-direction: column;
+    }
+    
+    .players, .queue, .game-container {
+        width: 100%;
+    }
+}
+
+/* Ensure consistent sizing for the JPRO app */
+#game-embed {
+    width: 100%;
+    min-height: 350px;
+}
+
+/* Ensure JPRO app element scales properly */
+jpro-app {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
