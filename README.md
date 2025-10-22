@@ -42,6 +42,7 @@ Whether you're learning about design patterns, exploring JavaFX development, or 
   - WebSocket-based real-time communication via AWS API Gateway
   - Serverless queue management with AWS Lambda (Python)
   - DynamoDB for player state and queue persistence
+  - DynamoDB Streams for real-time queue updates across all clients
   - Auto-scaling infrastructure with Application Load Balancer
 
 - **Infrastructure as Code**
@@ -59,10 +60,11 @@ Whether you're learning about design patterns, exploring JavaFX development, or 
 
 ### Backend
 - **Java** - Core game logic and business rules
-- **Python** - AWS Lambda functions for queue management
-- **AWS Lambda** - Serverless compute for game events
-- **AWS DynamoDB** - NoSQL database for player state
-- **AWS API Gateway** - WebSocket API endpoint
+- **Python** - AWS Lambda functions for queue management and event handling
+- **AWS Lambda** - Serverless compute for WebSocket routes and game events
+- **AWS DynamoDB** - NoSQL database for player state and queue management
+- **AWS DynamoDB Streams** - Real-time change data capture for queue updates
+- **AWS API Gateway** - WebSocket API endpoint for bi-directional communication
 
 ### Infrastructure
 - **Terraform** - Infrastructure as Code for AWS resources
@@ -171,20 +173,34 @@ Since this project uses JPro for JavaFX-to-Web compilation, you'll need to set u
 
 6. **Deploy Lambda functions**
 
-   Package and deploy the Lambda functions using AWS SAM or the AWS Console:
+   Package and deploy all Lambda functions using AWS SAM or the AWS Console:
    ```bash
    cd ../../lambda
-   # Package your Lambda function
-   zip -r joinQueue.zip joinQueue.py utility.py
-   zip -r gameOver.zip gameOver.py utility.py
 
-   # Deploy via AWS CLI or Console
+   # Package all Lambda functions (ensure utility.py is included in each)
+   for func in connection disconnect joinQueue gameOver sendInfo streamDB updateDB; do
+     zip -r ${func}.zip ${func}.py utility.py
+   done
+
+   # Deploy via AWS CLI (repeat for each function)
+   # Example for connection handler:
    aws lambda create-function \
-     --function-name joinQueue \
+     --function-name connection \
      --runtime python3.8 \
-     --handler joinQueue.handler \
-     --zip-file fileb://joinQueue.zip \
+     --handler connection.handler \
+     --zip-file fileb://connection.zip \
      --role <your-lambda-execution-role-arn>
+
+   # Configure API Gateway WebSocket routes:
+   # - $connect -> connection.handler
+   # - $disconnect -> disconnect.handler
+   # - joinQueue -> joinQueue.handler
+   # - gameOVER -> gameOver.handler
+   # - updateDB -> updateDB.lambda_handler
+   # - sendInfo -> sendInfo.lambda_handler
+
+   # Enable DynamoDB Streams on TicTacToeUsers table
+   # and configure streamDB.lambda_handler as the stream processor
    ```
 
 ---
@@ -250,8 +266,13 @@ jpro run
 tictactoe/
 ├── aws/                              # AWS Infrastructure
 │   ├── lambda/                       # Serverless functions
+│   │   ├── connection.py            # WebSocket $connect handler
+│   │   ├── disconnect.py            # WebSocket $disconnect handler
+│   │   ├── joinQueue.py             # Manages player queue, assigns markers
 │   │   ├── gameOver.py              # Handles game completion, queue progression
-│   │   └── joinQueue.py             # Manages player queue join events
+│   │   ├── sendInfo.py              # Sends connectionId to newly connected clients
+│   │   ├── streamDB.py              # DynamoDB Stream processor, broadcasts queue updates
+│   │   └── updateDB.py              # Updates player username in database
 │   ├── vpc/                         # Terraform modules
 │   │   ├── mod1/vpct.tf            # VPC, subnets, route tables, IGW, NAT
 │   │   ├── mod2/sgt.tf             # Security groups for ALB and EC2
@@ -294,14 +315,22 @@ tictactoe/
 
 ### Key Components
 
+#### Java Application
 - **`model/TicTacToeGame.java`** - Core game engine with 3x3 board, move validation, win detection
 - **`model/ComputerPlayer.java`** - Delegates to strategy implementations
 - **`model/TicTacToeStrategy.java`** - Interface for AI strategies (Strategy Pattern)
 - **`views/GUI.java`** - Main application with menu bar and view management
 - **`views/ButtonView.java`** - Observable view with clickable button grid
 - **`views/TextAreaView.java`** - Observable view with text representation
-- **`aws/lambda/joinQueue.py`** - Manages player queue, assigns markers (X/O)
-- **`aws/lambda/gameOver.py`** - Handles game completion, advances queue
+
+#### AWS Lambda Functions
+- **`connection.py`** - Handles WebSocket $connect route, creates user in DynamoDB, invokes joinQueue and sendInfo
+- **`disconnect.py`** - Handles WebSocket $disconnect route, removes user from queue, fills active slots
+- **`joinQueue.py`** - Processes queue join requests, assigns X/O markers, sets active/inactive status
+- **`gameOver.py`** - Processes game completion events, marks players inactive, advances queue
+- **`sendInfo.py`** - Sends connectionId and session information to newly connected clients
+- **`streamDB.py`** - DynamoDB Stream processor, broadcasts real-time queue updates to all connected clients
+- **`updateDB.py`** - Updates player username in DynamoDB when submitted via client
 
 ---
 
@@ -309,24 +338,45 @@ tictactoe/
 
 ### WebSocket API
 
-The application uses AWS API Gateway WebSocket API for real-time communication.
+The application uses AWS API Gateway WebSocket API for real-time bi-directional communication.
 
 **Endpoint**: `wss://wqritmruc9.execute-api.us-east-1.amazonaws.com/production`
 
-#### Events
+### WebSocket Routes
 
-**1. Connection Establishment**
+| Route | Lambda Handler | Description |
+|-------|---------------|-------------|
+| `$connect` | `connection.handler` | Establishes WebSocket connection, creates user record |
+| `$disconnect` | `disconnect.handler` | Cleans up on disconnect, refills active slots |
+| `updateDB` | `updateDB.lambda_handler` | Updates username in DynamoDB |
+| `joinQueue` | `joinQueue.handler` | Adds player to queue or activates them |
+| `gameOVER` | `gameOver.handler` | Handles game completion, advances queue |
+| `sendInfo` | `sendInfo.lambda_handler` | Sends connection info to client |
+
+### Events
+
+#### 1. Connection Flow ($connect)
+
+**Trigger**: WebSocket connection established
+
+**Process**:
+1. `connection.handler` creates user in DynamoDB with status='inactive'
+2. Generates unique `sessionId` (UUID)
+3. Invokes `joinQueue` lambda to assign marker and set status
+4. Invokes `sendInfo` lambda to return connectionId to client
+
+**Server -> Client (via sendInfo)**:
 ```javascript
-// Client connects and receives connectionId
 {
-  "connectionId": "abc123xyz",
-  "message": "Connected"
+  "message": "Hello from Lambda!",
+  "connectionId": "abc123xyz"
 }
 ```
 
-**2. Update Database (Join)**
+#### 2. Update Username (updateDB)
+
+**Client -> Server**:
 ```javascript
-// Client -> Server
 {
   "action": "updateDB",
   "connectionId": "abc123xyz",
@@ -334,29 +384,31 @@ The application uses AWS API Gateway WebSocket API for real-time communication.
 }
 ```
 
-**3. Queue Update**
-```javascript
-// Server -> Client
-{
-  "action": "queueUpdate",
-  "data": {
-    "activePlayer": ["player1", "player2"],
-    "queue": ["player3", "player4"]
-  }
-}
-```
+**Response**:
+- Updates DynamoDB item with username
+- Triggers DynamoDB Stream event
 
-**4. Join Queue Response**
+#### 3. Join Queue (joinQueue)
+
+**Trigger**: Invoked automatically by `connection.handler` or manually
+
+**Logic**:
+- Count active players (status='active')
+- If < 2 active: Set user to 'active', assign marker (X or O)
+- If >= 2 active: Set user to 'inactive' with joinedAt timestamp
+
+**Server -> Client (Active)**:
 ```javascript
-// Server -> Client (Active)
 {
   "action": "joinQueue",
   "status": "active",
   "marker": "X",
   "message": "You are now active in the game with marker 'X'."
 }
+```
 
-// Server -> Client (Queued)
+**Server -> Client (Queued)**:
+```javascript
 {
   "action": "joinQueue",
   "status": "inactive",
@@ -364,9 +416,49 @@ The application uses AWS API Gateway WebSocket API for real-time communication.
 }
 ```
 
-**5. Game Over**
+#### 4. Queue Updates (DynamoDB Streams)
+
+**Trigger**: Any INSERT, MODIFY, or REMOVE event in DynamoDB
+
+**Process**:
+1. `streamDB.lambda_handler` processes stream records
+2. Fetches current queue state (all users sorted by joinedAt)
+3. Broadcasts to all connected clients
+
+**Server -> All Clients**:
 ```javascript
-// Client -> Server
+{
+  "action": "queueUpdate",
+  "data": [
+    {
+      "connectionId": "conn1",
+      "username": "Player1",
+      "status": "active",
+      "marker": "X",
+      "joinedAt": "2025-01-15T10:30:00"
+    },
+    {
+      "connectionId": "conn2",
+      "username": "Player2",
+      "status": "active",
+      "marker": "O",
+      "joinedAt": "2025-01-15T10:30:05"
+    },
+    {
+      "connectionId": "conn3",
+      "username": "Player3",
+      "status": "inactive",
+      "marker": null,
+      "joinedAt": "2025-01-15T10:30:10"
+    }
+  ]
+}
+```
+
+#### 5. Game Over (gameOVER)
+
+**Client -> Server**:
+```javascript
 {
   "action": "gameOVER",
   "data": {
@@ -376,6 +468,25 @@ The application uses AWS API Gateway WebSocket API for real-time communication.
 }
 ```
 
+**Process**:
+1. `gameOver.handler` receives event
+2. Marks both players as 'inactive'
+3. Queries queue for next 2 inactive players (by joinedAt ascending)
+4. Promotes them to 'active' with assigned markers
+5. DynamoDB Stream triggers queue update broadcast
+
+#### 6. Disconnect Flow ($disconnect)
+
+**Trigger**: WebSocket disconnection
+
+**Process**:
+1. `disconnect.handler` retrieves user status
+2. Deletes user from DynamoDB
+3. If user was 'active', calls `fill_active_slots()`:
+   - Queries inactive users by joinedAt ascending
+   - Promotes up to 2 users to active status
+4. DynamoDB Stream broadcasts updated queue
+
 ### DynamoDB Schema
 
 **Table Name**: `TicTacToeUsers`
@@ -383,10 +494,11 @@ The application uses AWS API Gateway WebSocket API for real-time communication.
 **Primary Key**: `connectionId` (String)
 
 **Attributes**:
-- `connectionId` (String) - WebSocket connection identifier
+- `connectionId` (String) - WebSocket connection identifier (Primary Key)
+- `sessionId` (String) - Unique session identifier (UUID)
 - `username` (String) - Player's display name
 - `status` (String) - Player state: "active" or "inactive"
-- `marker` (String) - Game marker: "X" or "O" (null for inactive)
+- `marker` (String) - Game marker: "X" or "O" (null for inactive players)
 - `joinedAt` (String) - ISO 8601 timestamp for queue ordering
 
 **Global Secondary Index**: `statusIndex`
@@ -604,36 +716,87 @@ For questions, issues, or suggestions:
 ## Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Client Layer                           │
-├─────────────────────────────────────────────────────────────┤
-│  Desktop (JavaFX)          │      Web (HTML/CSS/JS)         │
-│  - ButtonView              │      - index.html              │
-│  - TextAreaView            │      - app.js (WebSocket)      │
-│  - GUI (Menu)              │      - styles.css              │
-└──────────────┬─────────────┴────────────────┬───────────────┘
-               │                              │
-               │                              │
-               │                              ▼
-               │                    ┌──────────────────┐
-               │                    │  API Gateway     │
-               │                    │  (WebSocket)     │
-               │                    └────────┬─────────┘
-               │                             │
-               ▼                             ▼
-    ┌──────────────────┐         ┌──────────────────────┐
-    │   JPro Server    │         │   Lambda Functions   │
-    │   (EC2 + ALB)    │         │   - joinQueue.py     │
-    └──────────────────┘         │   - gameOver.py      │
-                                 └──────────┬───────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                         Client Layer                             │
+├──────────────────────────────────────────────────────────────────┤
+│   Desktop (JavaFX)          │      Web (HTML/CSS/JS)             │
+│   - ButtonView              │      - index.html                  │
+│   - TextAreaView            │      - app.js (WebSocket client)   │
+│   - GUI (Menu)              │      - styles.css                  │
+└─────────────┬───────────────┴──────────────┬─────────────────────┘
+              │                              │
+              │ (JPro)                       │ (WebSocket)
+              ▼                              ▼
+   ┌────────────────────┐        ┌────────────────────────┐
+   │   JPro Server      │        │   API Gateway          │
+   │   (EC2 + ALB)      │        │   (WebSocket Routes)   │
+   └────────────────────┘        └──────────┬─────────────┘
                                             │
-                                            ▼
-                                 ┌──────────────────────┐
-                                 │   DynamoDB Table     │
-                                 │   TicTacToeUsers     │
-                                 │   + statusIndex GSI  │
-                                 └──────────────────────┘
+              ┌─────────────────────────────┼─────────────────────┐
+              │                             │                     │
+              ▼                             ▼                     ▼
+    ┌──────────────────┐        ┌──────────────────┐  ┌──────────────────┐
+    │  connection.py   │        │  disconnect.py   │  │   updateDB.py    │
+    │  ($connect)      │        │  ($disconnect)   │  │   (route)        │
+    └────────┬─────────┘        └─────────┬────────┘  └────────┬─────────┘
+             │                            │                     │
+             │ invokes                    │                     │
+             ├──────────┬─────────────────┘                     │
+             ▼          ▼                                       │
+    ┌──────────────┐ ┌──────────────┐                          │
+    │ joinQueue.py │ │ sendInfo.py  │                          │
+    │   (route)    │ │   (route)    │                          │
+    └──────┬───────┘ └──────────────┘                          │
+           │                                                    │
+           │         ┌─────────────────────────────────────────┘
+           │         │
+           │         │                    ┌──────────────────┐
+           │         │                    │   gameOver.py    │
+           │         │                    │     (route)      │
+           │         │                    └────────┬─────────┘
+           │         │                             │
+           └─────────┼─────────────────────────────┘
+                     ▼
+          ┌────────────────────────┐
+          │   DynamoDB Table       │
+          │   TicTacToeUsers       │
+          │   + statusIndex GSI    │
+          │   + Streams ENABLED    │
+          └───────────┬────────────┘
+                      │
+                      │ Stream (INSERT/MODIFY/REMOVE)
+                      ▼
+          ┌────────────────────────┐
+          │   streamDB.py          │
+          │   (Stream Processor)   │
+          └───────────┬────────────┘
+                      │
+                      │ Broadcast queueUpdate
+                      ▼
+          ┌────────────────────────┐
+          │   All Connected        │
+          │   WebSocket Clients    │
+          │   (Real-time updates)  │
+          └────────────────────────┘
 ```
+
+### Data Flow
+
+**Connection Flow**:
+1. Client connects → API Gateway `$connect` → `connection.py`
+2. `connection.py` creates user in DynamoDB
+3. `connection.py` invokes `joinQueue.py` and `sendInfo.py`
+4. DynamoDB change triggers Stream → `streamDB.py` → Broadcast to all clients
+
+**Game Over Flow**:
+1. Client sends gameOVER event → `gameOver.py`
+2. `gameOver.py` marks players inactive, promotes queue
+3. DynamoDB changes trigger Stream → `streamDB.py` → Broadcast queue update
+
+**Disconnect Flow**:
+1. Client disconnects → `disconnect.py`
+2. User removed from DynamoDB, active slots refilled
+3. DynamoDB changes trigger Stream → `streamDB.py` → Broadcast queue update
 
 ---
 
