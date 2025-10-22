@@ -1,0 +1,199 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 1) Cardinal-red background for the entire page */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #8C1515; /* Cardinal Red */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* so it starts at the top */
+    min-height: 100vh;       /* ensures background fills viewport */
+    padding: 20px;           /* some breathing room around the container */
+}
+
+/* 2) Main container made transparent so cardinal-red background shows */
+.container {
+    width: 80%;
+    margin: auto;
+    background-color: #fff; /* remove the old white background */
+    padding: 20px;
+    border-radius: 8px;
+    /* remove box-shadow so we only show shadows on the player/queue boxes */
+    box-shadow: none;
+    color: #fff; /* so text is visible if you place it on navy sections */
+}
+
+/* Center header text within the container */
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+header h1 {
+    color: #000; /* Make "Tic Tac Toe" black */
+}
+
+/* Layout for the game wrapper */
+.game-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px; /* add a little spacing between columns */
+}
+
+/* 3) Players and Queue as separate navy-blue "cards" with a slight shadow */
+.players, .queue {
+    width: 20%;
+    background-color: #002147; /* Navy Blue */
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* "raised" effect */
+    margin-bottom: 20px;
+    padding: 15px; /* some internal spacing */
+    color: #fff;   /* white text on navy */
+}
+
+/* Player headings spacing */
+.players h2 {
+    margin-bottom: 10px;
+}
+
+/* 4) If you also want the central game area to match, use similar styling */
+.game-container {
+    width: 60%;
+    text-align: center;
+
+    /* Uncomment the lines below if you want it to also have a navy background and shadow
+    background-color: #002147;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    padding: 15px;
+    color: #fff;
+    */
+}
+
+/* Queue heading */
+.queue h3 {
+    margin-bottom: 10px;
+    /* left align with indent */
+    text-align: left;
+    padding-left: 15px;
+}
+
+/* Queue text and list items: left aligned + 15px indent */
+.queue p,
+.queue ul,
+.queue li {
+    text-align: left;
+    padding-left: 15px;
+    margin-bottom: 10px;
+}
+
+/* Modal styling (unchanged) */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+#username-modal .modal-content h2 {
+  color: #000; /* black */
+}
+/* Username Input Styles */
+#username-input {
+  border-radius: 8px;
+  padding: 7px 16px;
+  box-shadow: rgba(77, 79, 82, 0.2) 0px 8px 24px;
+  border: 2px solid rgb(184, 180, 180);
+  font-size: 0.8rem;
+  outline: none;
+  transition: 0.5s ease;
+}
+
+#username-input:hover {
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+  border-color: rgb(138, 175, 255);
+}
+
+#username-input:focus {
+  border: 2px solid rgb(57, 120, 255);
+  box-shadow: rgba(133, 130, 130, 0.1) 0px 4px 12px;
+  transform: scale(0.99);
+}
+
+#username-input::placeholder {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+
+/* Username Button Styles */
+#username-submit {
+  padding: 6px 15px;
+  text-align: center;
+  color: rgb(95, 87, 87);
+  cursor: pointer;
+  background-color: white;
+  border-radius: 6px;
+  border: none;
+  transition: 0.5s;
+  width: 100%;
+  margin-top: 7px;
+  font-size: 13px;
+  box-shadow: rgba(104, 100, 100, 0.1) 0px 4px 6px -1px,
+              rgba(49, 42, 42, 0.06) 0px 2px 4px -1px;
+}
+
+#username-submit:hover {
+  border-radius: 7px;
+  background-color: rgb(243, 242, 242);
+  border-color: rgb(236, 232, 232);
+}
+/* Ensure the parent container is positioned relative
+.game-container {
+  position: relative;
+}
+
+/* Pseudo-element overlay for the queue message */
+.game-container::after {
+  content: "You are currently in the queue and cannot participate in the current game, your turn will be shortly :)";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(60, 80, 120, 0.8); /* Pastel dark blue overlay */
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  opacity: 0;
+  border-radius: 8px; /* Match container's border radius if needed */
+  padding: 20px;
+  transition: opacity 0.3s ease;
+  pointer-events: none; /* Ensures the overlay doesn't block underlying hover events */
+}
+
+/* Show the overlay on hover */
+.game-container:hover::after {
+  opacity: 1;
+}
+*/

@@ -1,0 +1,79 @@
+# ==========================================
+# Java / Build Outputs (no Gradle scripts)
+# ==========================================
+.gradle/
+build/
+*.gradle
+gradle*
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Logs
+*.log
+logs/
+*.out
+
+# ==========================================
+# Python / Lambda Functions
+# ==========================================
+# Cache & virtual envs only — Lambda source code WILL be tracked
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+ENV/
+env/
+
+# ==========================================
+# Certificates & Secrets
+# ==========================================
+**/*.key
+**/*.crt
+**/*.p7b
+**/*.ca-bundle
+
+# ==========================================
+# AWS & Terraform - CRITICAL
+# ==========================================
+*.tfstate
+*.tfstate.*
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+**/.terraform/
+*.auto.tfvars
+terraform.tfvars
+*.tfvars
+crash.log
+crash.*.log
+
+# AWS credentials & outputs
+.aws/
+aws/credentials
+aws/config
+aws/aws_credentials.txt
+aws/items.json
+aws/**/outputs.txt
+aws/**/vpct.txt
+aws/**/sgt.txt
+aws/**/ec2.txt
+aws/**/tfplan
+
+# ==========================================
+# IDE / Local Runtime Junk
+# ==========================================
+.idea/
+RUNNING_PID
+bin/
+
+# ==========================================
+# System Files
+# ==========================================
+.DS_Store
+Thumbs.db
